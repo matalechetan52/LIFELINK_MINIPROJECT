@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const db = require("./src/utils/db");
+const categoryRoutes = require("./src/routes/categoryRoutes");
+
 const app = express();
 
 const PORT = 5000;
@@ -18,6 +20,9 @@ app.get("/api", (req, res) => {
   });
 
 });
+
+//category route.
+app.use("/api/categories", categoryRoutes);
 
 // Start server
 app.listen(PORT, () => {
