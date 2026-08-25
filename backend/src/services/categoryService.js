@@ -64,6 +64,7 @@ const getResourceCountByCategory = async (categoryId) => {
 
     return rows[0].count;
 };
+
 //delete category
 const deleteCategory = async (categoryId) => {
     const [result] = await db.query(
@@ -73,6 +74,8 @@ const deleteCategory = async (categoryId) => {
 
     return result.affectedRows;
 };
+
+
 module.exports = {
     getAllCategories,
     getCategoryById,
