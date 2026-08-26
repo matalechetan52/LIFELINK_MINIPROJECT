@@ -5,6 +5,8 @@ const categoryRoutes = require("./src/routes/categoryRoutes");
 const resourceRoutes = require("./src/routes/resourceRoutes");
 const maintenanceRoutes =
     require("./src/routes/maintenanceRoutes");
+const availabilityRoutes =
+    require("./src/routes/availabilityRoutes");
 
 const app = express();
 
@@ -28,6 +30,7 @@ app.get("/api", (req, res) => {
 app.use("/api/categories", categoryRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api", availabilityRoutes);
 
 
 
