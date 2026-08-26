@@ -3,6 +3,8 @@ const cors = require("cors");
 const db = require("./src/utils/db");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const resourceRoutes = require("./src/routes/resourceRoutes");
+const maintenanceRoutes =
+    require("./src/routes/maintenanceRoutes");
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.get("/api", (req, res) => {
 //all routes.
 app.use("/api/categories", categoryRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+
 
 
 // Start server
