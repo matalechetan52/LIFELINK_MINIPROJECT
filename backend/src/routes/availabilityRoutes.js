@@ -6,7 +6,20 @@ const availabilityController =
 
 router.get(
     "/resources/:id/availability",
-    availabilityController.getResourceAvailability
+    (req, res) => {
+
+        if (req.query.start || req.query.end) {
+            return availabilityController.checkResourceAvailability(
+                req,
+                res
+            );
+        }
+
+        return availabilityController.getResourceAvailability(
+            req,
+            res
+        );
+    }
 );
 
 module.exports = router;
