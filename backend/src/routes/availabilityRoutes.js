@@ -22,4 +22,6 @@ router.get(
     }
 );
 
+router.get("/resources/:id/next-available",availabilityController.getNextAvailableTime)
+
 module.exports = router;
