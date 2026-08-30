@@ -3,10 +3,9 @@ const cors = require("cors");
 const db = require("./src/utils/db");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const resourceRoutes = require("./src/routes/resourceRoutes");
-const maintenanceRoutes =
-    require("./src/routes/maintenanceRoutes");
-const availabilityRoutes =
-    require("./src/routes/availabilityRoutes");
+const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
+const availabilityRoutes = require("./src/routes/availabilityRoutes");
+const bookingRoutes = require("./src/routes/bookingRoutes");
 
 const app = express();
 
@@ -31,6 +30,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api", availabilityRoutes);
+app.use("/api",bookingRoutes);
 
 
 
