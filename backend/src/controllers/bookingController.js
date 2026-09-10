@@ -153,7 +153,111 @@ const getAllBookings = async (req, res) => {
     }
 };
 
+// Get booking by ID
+const getBookingById = async (req, res) => {
+
+    try {
+
+        const bookingId = parseInt(req.params.id);
+
+        if (!Number.isInteger(bookingId) || bookingId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid booking ID"
+            });
+        }
+
+        const booking =
+            await bookingService.getBookingById(bookingId);
+
+        return res.status(200).json({
+            success: true,
+            data: booking
+        });
+
+    } catch (error) {
+
+        if (error.message === "BOOKING_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+// Cancel booking
+const cancelBooking = async (req, res) => {
+
+    try {
+
+        const bookingId = parseInt(req.params.id);
+
+        if (!Number.isInteger(bookingId) || bookingId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid booking ID"
+            });
+        }
+
+        const result =
+            await bookingService.cancelBooking(bookingId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Booking cancelled successfully",
+            data: result
+        });
+
+    } catch (error) {
+
+        if (error.message === "BOOKING_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
+        }
+
+        if (error.message === "BOOKING_ALREADY_CANCELLED") {
+            return res.status(409).json({
+                success: false,
+                message: "Booking is already cancelled"
+            });
+        }
+
+        if (error.message === "BOOKING_ALREADY_COMPLETED") {
+            return res.status(409).json({
+                success: false,
+                message: "Completed booking cannot be cancelled"
+            });
+        }
+
+        if (error.message === "ACTIVE_BOOKING_CANNOT_BE_CANCELLED") {
+            return res.status(409).json({
+                success: false,
+                message: "Active booking cannot be cancelled"
+            });
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 module.exports = {
     createBooking,
     getAllBookings,
+    getBookingById,
+    cancelBooking,
 };

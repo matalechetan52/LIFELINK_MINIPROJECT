@@ -170,8 +170,83 @@ const getAllBookings = async () => {
     return bookingRows;
 };
 
+// Get booking by ID
+const getBookingById = async (bookingId) => {
+
+    const [rows] = await db.query(
+    `SELECT
+        b.booking_id,
+        b.resource_id,
+        b.user_id,
+        b.start_time,
+        b.end_time,
+        b.status,
+        b.total_amount,
+        b.created_at,
+        r.name AS resource_name,
+        u.name AS user_name
+    FROM bookings b
+    INNER JOIN resources r
+        ON b.resource_id = r.resource_id
+    INNER JOIN users u
+        ON b.user_id = u.user_id
+    WHERE b.booking_id = ?`,
+    [bookingId]
+);
+
+    if (rows.length === 0) {
+        throw new Error("BOOKING_NOT_FOUND");
+    }
+
+    return rows[0];
+};
+
+// Cancel booking
+const cancelBooking = async (bookingId) => {
+
+    const [rows] = await db.query(
+        `SELECT
+            booking_id,
+            status
+        FROM bookings
+        WHERE booking_id = ?`,
+        [bookingId]
+    );
+
+    if (rows.length === 0) {
+        throw new Error("BOOKING_NOT_FOUND");
+    }
+
+    const booking = rows[0];
+
+    if (booking.status === "CANCELLED") {
+        throw new Error("BOOKING_ALREADY_CANCELLED");
+    }
+
+    if (booking.status === "COMPLETED") {
+        throw new Error("BOOKING_ALREADY_COMPLETED");
+    }
+
+    if (booking.status === "ACTIVE") {
+        throw new Error("ACTIVE_BOOKING_CANNOT_BE_CANCELLED");
+    }
+
+    await db.query(
+        `UPDATE bookings
+         SET status = 'CANCELLED'
+         WHERE booking_id = ?`,
+        [bookingId]
+    );
+
+    return {
+        booking_id: bookingId,
+        status: "CANCELLED"
+    };
+};
+
 module.exports = {
     createBooking,
     getAllBookings,
-    
+    getBookingById,
+    cancelBooking,
 };
