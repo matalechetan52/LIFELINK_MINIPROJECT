@@ -6,5 +6,7 @@ const bookingController =
 
 router.post( "/bookings",bookingController.createBooking);
 router.get("/bookings",bookingController.getAllBookings);
+router.get("/bookings/:id",bookingController.getBookingById);
+router.patch("/bookings/:id/cancel",bookingController.cancelBooking);
 
 module.exports = router;
