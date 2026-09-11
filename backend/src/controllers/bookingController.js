@@ -255,9 +255,176 @@ const cancelBooking = async (req, res) => {
     }
 };
 
+// Update booking
+const updateBooking = async (req, res) => {
+
+    try {
+
+        const bookingId = parseInt(req.params.id);
+
+        if (!Number.isInteger(bookingId) || bookingId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid booking ID"
+            });
+        }
+
+        const {
+            start_time,
+            end_time,
+            status
+        } = req.body;
+
+        if (
+            start_time === undefined &&
+            end_time === undefined &&
+            status === undefined
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one field is required for update"
+            });
+        }
+
+        if (start_time !== undefined) {
+
+            if (isNaN(Date.parse(start_time))) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid start_time"
+                });
+            }
+        }
+
+        if (end_time !== undefined) {
+
+            if (isNaN(Date.parse(end_time))) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid end_time"
+                });
+            }
+        }
+
+        const updatedBooking =
+            await bookingService.updateBooking(
+                bookingId,
+                start_time,
+                end_time,
+                status
+            );
+
+        return res.status(200).json({
+            success: true,
+            message: "Booking updated successfully",
+            data: updatedBooking
+        });
+
+    } catch (error) {
+
+        if (error.message === "BOOKING_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
+        }
+
+        if (error.message === "BOOKING_CANNOT_BE_UPDATED") {
+            return res.status(409).json({
+                success: false,
+                message: "Completed or cancelled booking cannot be updated"
+            });
+        }
+
+        if (error.message === "INVALID_BOOKING_STATUS") {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid booking status"
+            });
+        }
+
+        if (error.message === "INVALID_BOOKING_TIME") {
+            return res.status(400).json({
+                success: false,
+                message: "End time must be after start time"
+            });
+        }
+
+        if (error.message === "BOOKING_CONFLICT") {
+            return res.status(409).json({
+                success: false,
+                message: "Resource is already booked for the requested period"
+            });
+        }
+
+        if (error.message === "MAINTENANCE_CONFLICT") {
+            return res.status(409).json({
+                success: false,
+                message: "Resource is under maintenance for the requested period"
+            });
+        }
+
+        if (error.message === "NO_UPDATE_FIELDS") {
+            return res.status(400).json({
+                success: false,
+                message: "No valid fields provided for update"
+            });
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+// Get bookings for a specific resource
+const getResourceBookings = async (req, res) => {
+
+    try {
+
+        const resourceId = parseInt(req.params.resourceId);
+
+        if (!Number.isInteger(resourceId) || resourceId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid resource ID"
+            });
+        }
+
+        const bookings =
+            await bookingService.getResourceBookings(resourceId);
+
+        return res.status(200).json({
+            success: true,
+            data: bookings
+        });
+
+    } catch (error) {
+
+        if (error.message === "RESOURCE_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Resource not found"
+            });
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 module.exports = {
     createBooking,
     getAllBookings,
     getBookingById,
     cancelBooking,
+    updateBooking,
+    getResourceBookings,
 };
