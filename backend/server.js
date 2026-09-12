@@ -7,6 +7,8 @@ const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 const availabilityRoutes = require("./src/routes/availabilityRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 
+const authRoutes =require("./src/routes/authRoutes");
+
 const app = express();
 
 const PORT = 5000;
@@ -31,6 +33,7 @@ app.use("/api/resources", resourceRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api", availabilityRoutes);
 app.use("/api",bookingRoutes);
+app.use("/api/auth", authRoutes);
 
 
 
