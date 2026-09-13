@@ -8,6 +8,7 @@ const availabilityRoutes = require("./src/routes/availabilityRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 
 const authRoutes =require("./src/routes/authRoutes");
+const queueRoutes =require("./src/routes/queueRoutes");
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api", availabilityRoutes);
 app.use("/api",bookingRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", queueRoutes);
 
 
 
