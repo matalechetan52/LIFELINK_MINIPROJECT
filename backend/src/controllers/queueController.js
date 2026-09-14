@@ -88,6 +88,20 @@ const joinQueue = async (req, res) => {
                 success: false,
                 message: "User is already in the queue for this requested period"
             });
+
+        }
+        if (error.message === "RESOURCE_AVAILABLE") {
+            return res.status(409).json({
+                success: false,
+                message: "Resource is available for the requested period. Queue entry is not required"
+            });
+        }
+
+        if (error.message === "NO_AVAILABLE_PERIOD") {
+            return res.status(409).json({
+                success: false,
+                message: "No suitable available period could be predicted for this request"
+            });
         }
 
         console.error(error);
