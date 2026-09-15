@@ -397,6 +397,74 @@ return {
 };
 };
 
+// Get all reservation queue entries
+const getAllQueues = async () => {
+
+    const [queueRows] = await db.query(
+        `SELECT
+            q.queue_id,
+            q.resource_id,
+            q.user_id,
+            q.requested_start,
+            q.requested_end,
+            q.priority_score,
+            q.queue_position,
+            q.status,
+            q.joined_at,
+            r.name AS resource_name,
+            u.name AS user_name
+         FROM reservation_queue q
+         INNER JOIN resources r
+            ON q.resource_id = r.resource_id
+         INNER JOIN users u
+            ON q.user_id = u.user_id
+         ORDER BY
+            q.resource_id ASC,
+            CASE
+                WHEN q.status = 'WAITING' THEN 1
+                ELSE 2
+            END,
+            q.queue_position ASC,
+            q.joined_at ASC`
+    );
+
+    return queueRows;
+};
+
+// Get reservation queue entry by ID
+const getQueueById = async (queueId) => {
+
+    const [queueRows] = await db.query(
+        `SELECT
+            q.queue_id,
+            q.resource_id,
+            q.user_id,
+            q.requested_start,
+            q.requested_end,
+            q.priority_score,
+            q.queue_position,
+            q.status,
+            q.joined_at,
+            r.name AS resource_name,
+            u.name AS user_name
+         FROM reservation_queue q
+         INNER JOIN resources r
+            ON q.resource_id = r.resource_id
+         INNER JOIN users u
+            ON q.user_id = u.user_id
+         WHERE q.queue_id = ?`,
+        [queueId]
+    );
+
+    if (queueRows.length === 0) {
+        throw new Error("QUEUE_NOT_FOUND");
+    }
+
+    return queueRows[0];
+};
+
 module.exports = {
     joinQueue,
+    getAllQueues,
+    getQueueById,
 };
