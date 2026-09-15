@@ -112,7 +112,34 @@ const joinQueue = async (req, res) => {
         });
     }
 };
+// Get all reservation queue entries
+const getAllQueues = async (req, res) => {
+
+    try {
+
+        const queues =
+            await queueService.getAllQueues();
+
+        return res.status(200).json({
+            success: true,
+            message: "Reservation queues retrieved successfully",
+            data: queues
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 
 module.exports = {
-    joinQueue
+    joinQueue,
+    getAllQueues
+    
 };

@@ -9,4 +9,9 @@ router.post(
     queueController.joinQueue
 );
 
+router.get(
+    "/queues",
+    queueController.getAllQueues
+);
+
 module.exports = router;
