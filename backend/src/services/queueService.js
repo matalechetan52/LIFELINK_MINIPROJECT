@@ -463,8 +463,102 @@ const getQueueById = async (queueId) => {
     return queueRows[0];
 };
 
+// Cancel a reservation queue entry
+const cancelQueue = async (queueId) => {
+
+    // Check whether queue entry exists
+    const [queueRows] = await db.query(
+        `SELECT
+            queue_id,
+            resource_id,
+            status
+         FROM reservation_queue
+         WHERE queue_id = ?`,
+        [queueId]
+    );
+
+    if (queueRows.length === 0) {
+        throw new Error("QUEUE_NOT_FOUND");
+    }
+
+    const queueEntry = queueRows[0];
+
+    // Only WAITING entries can be cancelled
+    if (queueEntry.status !== "WAITING") {
+        throw new Error("QUEUE_CANNOT_BE_CANCELLED");
+    }
+
+    // Cancel the queue entry
+    await db.query(
+        `UPDATE reservation_queue
+         SET status = 'CANCELLED'
+         WHERE queue_id = ?`,
+        [queueId]
+    );
+
+    // Recalculate remaining queue positions
+    await recalculateQueuePositions(
+        queueEntry.resource_id
+    );
+
+    return {
+        queue_id: queueId,
+        resource_id: queueEntry.resource_id,
+        status: "CANCELLED"
+    };
+};
+
+// Get waiting queue entries for a specific resource
+const getResourceQueue = async (resourceId) => {
+
+    // Check whether resource exists
+    const [resourceRows] = await db.query(
+        `SELECT
+            resource_id,
+            name
+         FROM resources
+         WHERE resource_id = ?`,
+        [resourceId]
+    );
+
+    if (resourceRows.length === 0) {
+        throw new Error("RESOURCE_NOT_FOUND");
+    }
+
+    const [queueRows] = await db.query(
+        `SELECT
+            q.queue_id,
+            q.resource_id,
+            q.user_id,
+            q.requested_start,
+            q.requested_end,
+            q.priority_score,
+            q.queue_position,
+            q.status,
+            q.joined_at,
+            u.name AS user_name
+         FROM reservation_queue q
+         INNER JOIN users u
+            ON q.user_id = u.user_id
+         WHERE q.resource_id = ?
+           AND q.status = 'WAITING'
+         ORDER BY
+            q.queue_position ASC`,
+        [resourceId]
+    );
+
+    return {
+        resource_id: resourceRows[0].resource_id,
+        resource_name: resourceRows[0].name,
+        queue: queueRows
+    };
+};
+
 module.exports = {
     joinQueue,
     getAllQueues,
     getQueueById,
+    cancelQueue,
+    getResourceQueue,
+
 };

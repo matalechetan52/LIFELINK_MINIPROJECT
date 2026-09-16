@@ -14,4 +14,18 @@ router.get(
     queueController.getAllQueues
 );
 
+router.get(
+    "/queues/:id",
+    queueController.getQueueById
+);
+
+router.patch(
+    "/queues/:id/cancel",
+    queueController.cancelQueue
+);
+
+router.get(
+    "/resources/:resourceId/queue",
+    queueController.getResourceQueue
+);
 module.exports = router;
