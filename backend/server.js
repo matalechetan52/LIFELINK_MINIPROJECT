@@ -6,6 +6,7 @@ const resourceRoutes = require("./src/routes/resourceRoutes");
 const maintenanceRoutes = require("./src/routes/maintenanceRoutes");
 const availabilityRoutes = require("./src/routes/availabilityRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
+const alternativeRoutes = require("./src/routes/alternativeRoutes");
 
 const authRoutes =require("./src/routes/authRoutes");
 const queueRoutes =require("./src/routes/queueRoutes");
@@ -36,6 +37,7 @@ app.use("/api", availabilityRoutes);
 app.use("/api",bookingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", queueRoutes);
+app.use("/api", alternativeRoutes);
 
 
 
