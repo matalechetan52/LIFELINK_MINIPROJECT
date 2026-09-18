@@ -141,8 +141,91 @@ const getCurrentUser = async (userId) => {
     return rows[0];
 };
 
+// Generate a password reset token
+const generatePasswordResetToken = async (email) => {
+
+    // 1. Check whether the user exists
+    const [userRows] = await db.query(
+        `SELECT
+            user_id,
+            email
+         FROM users
+         WHERE email = ?`,
+        [email]
+    );
+
+    // 2. Do not reveal whether an email exists
+    if (userRows.length === 0) {
+        return null;
+    }
+
+    const user = userRows[0];
+
+    // 3. Generate a short-lived reset token
+    const resetToken = jwt.sign(
+        {
+            user_id: user.user_id,
+            email: user.email,
+            purpose: "PASSWORD_RESET"
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "15m"
+        }
+    );
+
+    return resetToken;
+};
+
+// Reset user password using a valid reset token
+const resetPassword = async (resetToken, newPassword) => {
+
+    // 1. Verify reset token
+    let decoded;
+
+    try {
+        decoded = jwt.verify(
+            resetToken,
+            process.env.JWT_SECRET
+        );
+    } catch (error) {
+        throw new Error("INVALID_OR_EXPIRED_RESET_TOKEN");
+    }
+
+    // 2. Make sure this token is specifically for password reset
+    if (decoded.purpose !== "PASSWORD_RESET") {
+        throw new Error("INVALID_RESET_TOKEN");
+    }
+
+    // 3. Hash the new password
+    const hashedPassword =
+        await bcrypt.hash(newPassword, 10);
+
+    // 4. Update user's password
+    const [result] = await db.query(
+        `UPDATE users
+         SET password = ?
+         WHERE user_id = ?`,
+        [
+            hashedPassword,
+            decoded.user_id
+        ]
+    );
+
+    if (result.affectedRows === 0) {
+        throw new Error("USER_NOT_FOUND");
+    }
+
+    return {
+        user_id: decoded.user_id,
+        email: decoded.email
+    };
+};
+
 module.exports = {
     registerUser,
     loginUser,
     getCurrentUser,
+    generatePasswordResetToken,
+    resetPassword,
 };
