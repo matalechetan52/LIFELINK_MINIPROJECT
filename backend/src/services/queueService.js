@@ -554,11 +554,157 @@ const getResourceQueue = async (resourceId) => {
     };
 };
 
+// Convert an eligible waiting queue entry into a booking
+const convertQueueToBooking = async (queueId) => {
+
+    // 1. Get the queue entry
+    const [queueRows] = await db.query(
+        `SELECT
+            queue_id,
+            resource_id,
+            user_id,
+            requested_start,
+            requested_end,
+            status
+         FROM reservation_queue
+         WHERE queue_id = ?`,
+        [queueId]
+    );
+
+    if (queueRows.length === 0) {
+        throw new Error("QUEUE_NOT_FOUND");
+    }
+
+    const queueEntry = queueRows[0];
+
+    // 2. Check queue eligibility
+    if (queueEntry.status !== "WAITING") {
+        throw new Error("QUEUE_NOT_ELIGIBLE");
+    }
+
+    // 3. Re-check resource availability
+    const availability =
+        await availabilityService.checkResourceAvailability(
+            queueEntry.resource_id,
+            queueEntry.requested_start,
+            queueEntry.requested_end
+        );
+
+    if (!availability) {
+        throw new Error("RESOURCE_NOT_FOUND");
+    }
+
+    if (!availability.available) {
+        throw new Error("RESOURCE_NOT_AVAILABLE");
+    }
+
+    // 4. Get resource price
+    const [resourceRows] = await db.query(
+        `SELECT
+            resource_id,
+            price_per_hour
+         FROM resources
+         WHERE resource_id = ?`,
+        [queueEntry.resource_id]
+    );
+
+    if (resourceRows.length === 0) {
+        throw new Error("RESOURCE_NOT_FOUND");
+    }
+
+    const resource = resourceRows[0];
+
+    // 5. Calculate booking amount
+    const durationInHours =
+        (
+            new Date(queueEntry.requested_end).getTime() -
+            new Date(queueEntry.requested_start).getTime()
+        ) / (1000 * 60 * 60);
+
+    const totalAmount =
+        durationInHours *
+        Number(resource.price_per_hour);
+
+    // 6. Create booking
+    const [bookingResult] = await db.query(
+        `INSERT INTO bookings
+        (
+            resource_id,
+            user_id,
+            start_time,
+            end_time,
+            status,
+            total_amount
+        )
+        VALUES (?, ?, ?, ?, 'CONFIRMED', ?)`,
+        [
+            queueEntry.resource_id,
+            queueEntry.user_id,
+            queueEntry.requested_start,
+            queueEntry.requested_end,
+            totalAmount
+        ]
+    );
+
+    // 7. Mark queue entry as RESERVED
+    await db.query(
+        `UPDATE reservation_queue
+         SET status = 'RESERVED'
+         WHERE queue_id = ?`,
+        [queueId]
+    );
+
+    // 8. Add resource history
+    await db.query(
+        `INSERT INTO resource_history
+        (
+            resource_id,
+            event_type,
+            event_description
+        )
+        VALUES (?, ?, ?)`,
+        [
+            queueEntry.resource_id,
+            "AUTO_RESERVATION",
+            `Queue entry ${queueId} converted into booking ${bookingResult.insertId}`
+        ]
+    );
+
+    // 9. Add notification
+    await db.query(
+        `INSERT INTO notifications
+        (
+            user_id,
+            type,
+            message
+        )
+        VALUES (?, ?, ?)`,
+        [
+            queueEntry.user_id,
+            "AUTO_RESERVATION",
+            `Your queue reservation has been automatically converted into booking ${bookingResult.insertId}`
+        ]
+    );
+
+    // 10. Return conversion result
+    return {
+        queue_id: queueId,
+        booking_id: bookingResult.insertId,
+        resource_id: queueEntry.resource_id,
+        user_id: queueEntry.user_id,
+        start_time: queueEntry.requested_start,
+        end_time: queueEntry.requested_end,
+        status: "RESERVED",
+        booking_status: "CONFIRMED",
+        total_amount: totalAmount
+    };
+};
+
 module.exports = {
     joinQueue,
     getAllQueues,
     getQueueById,
     cancelQueue,
     getResourceQueue,
-
+    convertQueueToBooking,
 };

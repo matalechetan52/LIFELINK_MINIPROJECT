@@ -4,6 +4,13 @@ const router = express.Router();
 const queueController =
     require("../controllers/queueController");
 
+
+const authenticateToken =
+    require("../middleware/authMiddleware");
+
+const authorizeRole =
+    require("../middleware/roleMiddleware");
+
 router.post(
     "/queues",
     queueController.joinQueue
@@ -28,4 +35,12 @@ router.get(
     "/resources/:resourceId/queue",
     queueController.getResourceQueue
 );
+
+router.post(
+    "/queues/:id/convert",
+    authenticateToken,
+    authorizeRole("ADMIN"),
+    queueController.convertQueueToBooking
+);
+
 module.exports = router;
