@@ -280,12 +280,81 @@ const getResourceQueue = async (req, res) => {
     }
 };
 
+// Convert a waiting queue entry into a booking
+const convertQueueToBooking = async (req, res) => {
+
+    try {
+
+        const queueId = Number(req.params.id);
+
+        // Validate queue ID
+        if (
+            !Number.isInteger(queueId) ||
+            queueId <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Queue ID must be a positive integer"
+            });
+        }
+
+        const result =
+            await queueService.convertQueueToBooking(queueId);
+
+        return res.status(201).json({
+            success: true,
+            message:
+                "Queue entry converted into booking successfully",
+            data: result
+        });
+
+    } catch (error) {
+
+        if (error.message === "QUEUE_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Queue entry not found"
+            });
+        }
+
+        if (error.message === "QUEUE_NOT_ELIGIBLE") {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Queue entry is not eligible for conversion"
+            });
+        }
+
+        if (error.message === "RESOURCE_NOT_FOUND") {
+            return res.status(404).json({
+                success: false,
+                message: "Resource not found"
+            });
+        }
+
+        if (error.message === "RESOURCE_NOT_AVAILABLE") {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Resource is not available for the requested period"
+            });
+        }
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
 
 module.exports = {
     joinQueue,
     getAllQueues,
     getQueueById,
     cancelQueue,
-    getResourceQueue
+    getResourceQueue,
+    convertQueueToBooking,
     
 };
