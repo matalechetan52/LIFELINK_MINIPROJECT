@@ -11,6 +11,19 @@ const alternativeRoutes = require("./src/routes/alternativeRoutes");
 const authRoutes =require("./src/routes/authRoutes");
 const queueRoutes =require("./src/routes/queueRoutes");
 
+const paymentRoutes =
+    require("./src/routes/paymentRoutes");
+const notificationRoutes =
+    require("./src/routes/notificationRoutes");
+const reviewRoutes = require("./src/routes/reviewRoutes");
+const resourcePassportRoutes =
+    require("./src/routes/resourcePassportRoutes");
+const dashboardRoutes =
+    require("./src/routes/dashboardRoutes");
+
+const reportRoutes =
+    require("./src/routes/reportRoutes");
+
 const app = express();
 
 const PORT = 5000;
@@ -38,8 +51,12 @@ app.use("/api",bookingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", queueRoutes);
 app.use("/api", alternativeRoutes);
-
-
+app.use("/api", paymentRoutes);
+app.use("/api", notificationRoutes);
+app.use("/api", reviewRoutes);
+app.use("/api", resourcePassportRoutes);
+app.use("/api", dashboardRoutes);
+app.use("/api", reportRoutes);
 
 // Start server
 app.listen(PORT, () => {
